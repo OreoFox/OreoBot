@@ -21,7 +21,7 @@ let token = config.token;
 let prefix = config.prefix;
 
 bot.on('ready', () => {
-    console.log(`${bot.user.username} готов производить контент`);
+    console.log(`${bot.user.username} запущен!`);
     bot.generateInvite(["ADMINISTRATOR"]).then(link =>{
         console.log(link);
     })
@@ -58,9 +58,27 @@ bot.on('message', async message =>{
     if(message.author.id == 208583885666254849) {
         message.react('🦊')
     }
+    
+    if(message.author.id == 424524746038968321) {
+        message.react('🐺')
+    }
 
     if(message.content === prefix + 'embed') {
         embed(message);
+        return;
+    }
+
+    if(message.content.startsWith(prefix + 'setcookies')) {
+        if(message.author.id == 208583885666254849) {
+            setcookies(message);
+        } else {
+            message.channel.send('Недостаточно прав');
+        }
+        return;
+    }
+
+    if(message.content.startsWith(prefix + 'ccfrom')) {
+        ccfrom(message);
         return;
     }
 
@@ -105,6 +123,53 @@ async function test(message) {
         .setColor(`${color}`)
         .setDescription(`${descr}`);
   message.channel.send(embemb);
+}
+
+async function setcookies(message) {
+    let content = message.content.split(' ') 
+
+    let user = content[1];
+    let value = content[2];
+
+    if(!user) {
+        message.channel.send('Введите ID')
+    } else if(!value) {
+        message.channel.send('Введите кол-во печенек')
+    } else if(!typeof(user) == 'number') {
+        message.channel.send('Введите правильный ID')
+    } else if(!typeof(value) == 'number') {
+        message.channel.send('Введите правильное кол-во печенек')
+    } else {
+        dbwork.changeCookie(user, value);
+    }
+}
+
+async function ccfrom(message) {
+    let content = message.content.split(' ') 
+
+    let userid = content[1];
+
+    if(!userid) {
+        message.channel.send('Введите ID')
+    } else if(!typeof(userid) == 'number') {
+        message.channel.send('Введите правильный ID')
+    } else {
+        let usercookie = dbwork.cookiesUser(userid);
+        message.channel.send(usercookie);
+        //let avatar = user_g.avatarURL({format: 'png'});
+
+        bot.users.fetch(userid).then(user => {
+            let avatar = user.avatarURL({format: 'png'});
+            let cookiesuserembed = new Discord.MessageEmbed()
+        .setTitle(`Печеньки`)
+        .setColor(`#dcdcdc`)
+        .setDescription(`У ${user.username} есть ${usercookie} печенек!
+Отправляй сообщения 
+и зарабатывай больше пченек!`)
+        .setThumbnail(avatar);
+        message.channel.send(cookiesuserembed);
+        });
+    }
 }
 
 async function embed(message) {

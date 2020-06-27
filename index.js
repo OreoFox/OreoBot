@@ -36,8 +36,14 @@ bot.on('message', async message =>{
     if(message.author.id == 725451931996258375) {
       return;
     } else {
-      dbwork.addCookie(message.author);
+      dbwork.addCookie(message);
     }
+
+    if(message.author.id == 725451931996258375) {
+        return;
+      } else {
+        dbwork.checkGuild(message.guild);
+      }
 
     if(message.content === prefix + 'cookies') {
         let cookies = dbwork.getCookie(message.author);

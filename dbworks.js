@@ -6,15 +6,16 @@ class Dbwork {
     
   }
 
-  addCookie(author) {
-    this.user = author.id 
+  addCookie(message) {
+    this.user = message.author.id;
+    this.guild = message.guild.id;
 
     if(!this.checkUser()) {
         this.addUser();
     } else {
     
         try {
-            let sql = db.prepare(`UPDATE Oreo SET cookies = cookies + 1 WHERE user_id = ?`);
+            let sql = db.prepare('UPDATE _' + this.guild + '_oreo SET cookies = cookies + 1 WHERE user_id = ?');
             let cookiechange = sql.run(this.user);
         } catch(e) {
             console.log(e);
@@ -22,10 +23,23 @@ class Dbwork {
     }
     }
   
+  checkGuild(guild) {
+    this.guild = guild.id;
+
+    try {
+
+      let sql = db.prepare('CREATE TABLE if not exists _' + this.guild + '_oreo (user_id BIGINT (20) PRIMARY KEY, cookies INT (6))')
+      var res = sql.run();
+
+    } catch(e) {
+      console.log(e)
+    }
+  }
+
   checkUser() {    
     try {
       
-      let sql = db.prepare(`SELECT * FROM Oreo WHERE user_id = ?`);
+      let sql = db.prepare('SELECT * FROM _' + this.guild + '_oreo WHERE user_id = ?');
       var res = sql.get(this.user);
       
     } catch(e) {
@@ -42,7 +56,7 @@ class Dbwork {
   addUser() {
     try {
       
-      let sql = db.prepare(`INSERT INTO Oreo VALUES (?, 1)`);
+      let sql = db.prepare('INSERT INTO _' + this.guild + '_oreo VALUES (?, 1)');
       var res = sql.run(this.user);
       
     } catch(e) {
@@ -60,7 +74,7 @@ class Dbwork {
 
         try {
 
-            let sql = db.prepare(`SELECT cookies FROM Oreo WHERE user_id = ?`);
+            let sql = db.prepare('SELECT cookies FROM _' + this.guild + '_oreo WHERE user_id = ?');
             var res = sql.get(this.user);
             return res.cookies;
 
@@ -81,7 +95,7 @@ class Dbwork {
 
         try {
 
-            let sql = db.prepare(`UPDATE Oreo SET cookies = ? WHERE user_id = ?`);
+            let sql = db.prepare('UPDATE _' + this.guild + '_oreo SET cookies = ? WHERE user_id = ?');
             let cookiechange = sql.run(this.val, this.user);
 
         } catch(e) {
@@ -100,7 +114,7 @@ class Dbwork {
 
         try {
 
-            let sql = db.prepare(`SELECT cookies FROM Oreo WHERE user_id = ?`);
+            let sql = db.prepare('SELECT cookies FROM _' + this.guild + '_oreo WHERE user_id = ?');
             var usercookies = sql.get(this.user);
             return usercookies.cookies;
 

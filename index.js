@@ -34,18 +34,49 @@ bot.on('message', async message =>{
     if(message.channel.type == 'dm') return;
   
     if(message.author.id == 725451931996258375) {
+        return;
+    } else {
+        dbwork.checkGuild(message.guild);
+    }
+
+    if(message.author.id == 725451931996258375) {
       return;
     } else {
       dbwork.addCookie(message);
     }
 
-    if(message.author.id == 725451931996258375) {
+    if(message.content === prefix + 'top') {
+        top(message);
         return;
-      } else {
-        dbwork.checkGuild(message.guild);
-      }
+    }
+
+    if(message.content === prefix + 'work') {
+        work(message);
+        return;
+    }
+
+    if(message.content === prefix + 'channel') {
+        rollSetup(message);
+        return;
+    }
 
     if(message.content === prefix + 'cookies') {
+        let cookies = dbwork.getCookie(message.author);
+        let avatar = message.author.avatarURL();
+
+        let cookiesembed = new Discord.MessageEmbed()
+        .setTitle(`Печеньки`)
+        .setColor(`#dcdcdc`)
+        .setDescription(`У ${message.author.username} есть ${cookies} печенек!
+Отправляй сообщения 
+и зарабатывай больше пченек!`)
+        .setThumbnail(avatar);
+        message.channel.send(cookiesembed);
+
+        return;
+    }
+
+    if(message.content === prefix + '$') {
         let cookies = dbwork.getCookie(message.author);
         let avatar = message.author.avatarURL();
 
@@ -88,12 +119,43 @@ bot.on('message', async message =>{
         return;
     }
 
+    if(message.content.startsWith(prefix + 'give')) {
+        give(message);
+        return;
+    }
+
     if(message.content === prefix + 'test') {
         test(message);
         return;
     }
 
 });
+
+async function work(message) {
+    let timer = 600000;
+
+    let val = Math.floor(Math.random() * (150 - 50) + 50)
+
+    dbwork.workCookies(message, val);
+}
+
+async function rollSetup(message) {
+    message.guild.channels.create('Rolls', { type: 'text', permissionOverwrites: [
+        {
+          deny: ['VIEW_CHANNEL'],
+          id: message.author.id,
+          allow: ['VIEW_CHANNEL']
+        },
+    ]});
+}
+
+async function top(message) {
+    dbwork.getAllCookies(message);
+}
+
+async function give(message) {
+    dbwork.giveCookies(message);
+}
 
 async function test(message) {
   
@@ -132,7 +194,7 @@ async function test(message) {
 }
 
 async function setcookies(message) {
-    let content = message.content.split(' ') 
+    let content = message.content.split(' ');
 
     let user = content[1];
     let value = content[2];

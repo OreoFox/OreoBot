@@ -26,7 +26,7 @@ let token = config.token;
 let prefix = config.prefix;
 let botwork = true;
 
-setInterval(() => {
+/*setInterval(() => {
     request({
         method: 'GET',
         url: 'https://oreowilybot.herokuapp.com',
@@ -37,6 +37,7 @@ setInterval(() => {
         }
     })
 }, 600000);
+*/
 
 bot.on('ready', () => {
     console.log(`${bot.user.username} запущен!`);

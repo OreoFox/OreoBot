@@ -2,6 +2,7 @@ const Discord = require('discord.js');
 const bot = new Discord.Client();
 const Database = require('better-sqlite3');
 const db = new Database('./users.db');
+const PORT = process.env.PORT || 80;
 
 const Dbwork = require('./dbworks');
 var dbwork = new Dbwork();
@@ -16,7 +17,7 @@ app.get('/', (req, res) =>{
 app.get('/', (request, response) =>{
   response.sendStatus(200);
 });
-app.listen(3000)
+app.listen(PORT)
 
 let config = require('./botconfig.json');
 const e = require('express');

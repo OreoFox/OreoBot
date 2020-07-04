@@ -186,8 +186,13 @@ bot.on('message', async message =>{
         return;
     }
 
-    if(message.content.startsWith(prefix + 'tttoy')) {
+    if(message.content.startsWith(prefix + 'OX')) {
         TTToy(message);
+        return;
+    }
+
+    if(message.content.startsWith(prefix + 'RPS')) {
+        RPS(message);
         return;
     }
 
@@ -366,6 +371,26 @@ async function TTToy(message) {
     if(choose.first()){
         if (choose.first().content == 'Y') {
 
+            await message.guild.channels.create('Tic-Tac-Toe', { type: 'text', permissionOverwrites:[
+                {
+                    id: message.guild.id,
+                    deny: ['VIEW_CHANNEL', 'SEND_MESSAGES'],
+                },
+                {
+                    id: playerid,
+                    allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY'],
+                },
+                {
+                    id: message.author.id,
+                    allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY'],
+                },
+                {
+                    id: bot.user.id,
+                    allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY', 'ADMINISTRATOR'],
+                }
+            ]}).then(channel1 => {
+                channel = channel1;
+            });
 
             let board = [
                 ['*', '  A  ', ' B  ', ' C '],
@@ -379,7 +404,7 @@ async function TTToy(message) {
                 for(let j = 0; j < 4; j++) {
                     boardst = boardst + board[i][j];
                 }
-                message.channel.send(boardst);
+                channel.send(boardst);
                 boardst = '';   
             }
 
@@ -390,7 +415,7 @@ async function TTToy(message) {
                 } else if(turn == -1) {
                     filter = m => m.author.id === playerid;
                 }
-                let lita = await message.channel.awaitMessages(filter, { max: 1 });
+                let lita = await channel.awaitMessages(filter, { max: 1 });
                 let cont = lita.first().content.split(' ');
                 let lit = cont[0];
                 let num = cont[1];
@@ -422,7 +447,7 @@ async function TTToy(message) {
                             for(let j = 0; j < 4; j++) {
                                 boardst = boardst + board[i][j];
                             }
-                            message.channel.send(boardst);
+                            channel.send(boardst);
                             boardst = '';   
                         }
 
@@ -460,7 +485,8 @@ async function TTToy(message) {
                                     .setTitle(`Победа`)
                                     .setColor(`#dcdcdc`)
                                     .setDescription(`<@${message.author.id}>, ты получил ${win} :cookie:!`);
-                                message.channel.send(embemb);
+                                channel.send(embemb);
+                                setTimeout(() => channel.delete(), 10000);
                                 return;
                             } else {
                                 dbwork.tCookie(playerid, win, message.author.id);
@@ -468,16 +494,17 @@ async function TTToy(message) {
                                     .setTitle(`Победа`)
                                     .setColor(`#dcdcdc`)
                                     .setDescription(`<@${playerid}>, ты получил ${win} :cookie:!`);
-                                message.channel.send(embemb);
+                                channel.send(embemb);
+                                setTimeout(() => channel.delete(), 10000);
                                 return;
                             }
                         }
                         turn = turn * (-1);
                     } else {
-                        message.channel.send('Ячейка занята!');
+                        channel.send('Ячейка занята!');
                     }
                 } else {
-                    message.channel.send('Неправильный ход!');
+                    channel.send('Неправильный ход!');
                 }
             }
         } else {
@@ -485,9 +512,199 @@ async function TTToy(message) {
             return;
         }
     } else {
-        message.channel.send(`<@${playerid}> не принял игру`);
+        message.message.channel.send(`<@${playerid}> не принял игру`);
         return;
     }
+}
+
+async function RPS(message) {
+    let content = message.content.split(' ');
+    let user = `${content[1]}`;
+    let mon = Math.abs(Math.floor(Number(content[2])));
+    let channel;
+
+    await check(content[1]).then(userid => {
+        user = userid;
+    });
+
+    if(!user) {
+        message.channel.send('Выберите игрока');
+        return;
+    } else if(!mon) {
+        message.channel.send('Введите ставку');
+        return;
+    } else if(!Number.isInteger(Number(user))) {
+        message.channel.send('Выберите правильного игрока');
+        return;
+    } else if(!Number.isInteger(Number(mon))) {
+        message.channel.send('Выберите правильную ставку');
+        return;
+    }
+
+    let aCookie = await dbwork.checkRoll(message);
+    let bCookie = await dbwork.checkCookie(user);
+
+    if(aCookie < mon || bCookie < mon) {
+        message.channel.send('У одного из игроков не хватает печенек для игры :face_with_raised_eyebrow:');
+        return;
+    }
+    
+    message.channel.send(`<@${user}>, чтобы принять игру напишите Y, иначе через 30 секунд игра будет отменена.`);
+    filter = m => m.author.id == user;
+    let choose = await message.channel.awaitMessages(filter, { max: 1, time: 15000 });
+    if(choose.first()){
+        if(choose.first().content == 'Y') {
+            await message.guild.channels.create('RockPaperScissors1', { type: 'text', permissionOverwrites:[
+                {
+                    id: message.guild.id,
+                    deny: ['VIEW_CHANNEL', 'SEND_MESSAGES'],
+                },
+                {
+                    id: user,
+                    deny: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY'],
+                },
+                {
+                    id: message.author.id,
+                    allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY'],
+                },
+                {
+                    id: bot.user.id,
+                    allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY', 'ADMINISTRATOR'],
+                }
+            ]}).then(channel => {
+                channel1 = channel;
+            });
+
+            await message.guild.channels.create('RockPaperScissors2', { type: 'text', permissionOverwrites:[
+                {
+                    id: message.guild.id,
+                    deny: ['VIEW_CHANNEL', 'SEND_MESSAGES'],
+                },
+                {
+                    id: user,
+                    allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY'],
+                },
+                {
+                    id: message.author.id,
+                    deny: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY'],
+                },
+                {
+                    id: bot.user.id,
+                    allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY', 'ADMINISTRATOR'],
+                }
+            ]}).then(channel2 => {
+                channel22 = channel2;
+            });
+
+            await channel1;
+            await channel22;
+
+            channel1.send(`Игра, в которой побеждает рандом!`);
+            channel22.send(`Игра, в которой побеждает рандом!`);
+
+            let choose1q = true;
+            let choose2q = true; 
+
+            let embemb1 = new Discord.MessageEmbed()
+                .setTitle(`Выберите действие`)
+                .setColor(`#dcdcdc`)
+                .setDescription(`1. Камень\r\n2. Ножницы\r\n3. Бумага`);
+            channel1.send(embemb1);
+            filter = m => m.author.id == message.author.id;
+            let choose1aw = await channel1.awaitMessages(filter, { max: 1, time: 150000 });
+            let choose1 = choose1aw.first().content;
+
+            let embemb = new Discord.MessageEmbed()
+                .setTitle(`Выберите действие`)
+                .setColor(`#dcdcdc`)
+                .setDescription(`1. Камень\r\n2. Ножницы\r\n3. Бумага`);
+            channel22.send(embemb);
+            filter = m => m.author.id == user;
+            let choose2aw = await channel22.awaitMessages(filter, { max: 1, time: 150000 });
+            let choose2 = choose2aw.first().content;
+
+            await choose1;
+            await choose2;
+
+            await channel1.send(`Противник выбрал ${choose2}`);
+            await channel22.send(`Противник выбрал ${choose1}`);
+
+            if(choose1 == 1 && choose2 == 2) {  //Камень - Ножницы
+                dbwork.tCookie(message.author.id, mon, user);
+                channel1.send(`Победил <@${message.author.id}>`);
+                channel22.send(`Победил <@${message.author.id}>`);
+                setTimeout(() => channel1.delete(), 5000);
+                setTimeout(() => channel22.delete(), 5000);
+                return;
+            } else if(choose1 == 2 && choose2 == 3) {  //Ножницы - Бумага
+                dbwork.tCookie(message.author.id, mon, user);
+                channel1.send(`Победил <@${message.author.id}>`);
+                channel22.send(`Победил <@${message.author.id}>`);
+                setTimeout(() => channel1.delete(), 5000);
+                setTimeout(() => channel22.delete(), 5000);
+                return;
+            } else if(choose1 == 1 && choose2 == 3) { //Камень - Бумага
+                dbwork.tCookie(user, mon, message.author.id);
+                channel1.send(`Победил <@${user}>`);
+                channel22.send(`Победил <@${user}>`);
+                setTimeout(() => channel1.delete(), 5000);
+                setTimeout(() => channel22.delete(), 5000);
+                return;
+            } else if(choose1 == 3 && choose2 == 3) { //Бумага - Бумага
+                channel1.send(`Ничья`);
+                channel22.send(`Ничья`);
+                setTimeout(() => channel1.delete(), 5000);
+                setTimeout(() => channel22.delete(), 5000);
+            } else if(choose1 == 2 && choose2 == 2) { //Ножницы - Ножницы
+                channel1.send(`Ничья`);
+                channel22.send(`Ничья`);
+                setTimeout(() => channel1.delete(), 5000);
+                setTimeout(() => channel22.delete(), 5000);
+                return;
+            } else if(choose1 == 1 && choose2 == 1) { //Камень - Камень
+                channel1.send(`Ничья`);
+                channel22.send(`Ничья`);
+                setTimeout(() => channel1.delete(), 5000);
+                setTimeout(() => channel22.delete(), 5000);
+                return;
+            } else if(choose1 == 2 && choose2 == 1) {  //Ножницы - Камень
+                dbwork.tCookie(user, mon, message.author.id);
+                channel1.send(`Победил <@${user}>`);
+                channel22.send(`Победил <@${user}>`);
+                setTimeout(() => channel1.delete(), 5000);
+                setTimeout(() => channel22.delete(), 5000);
+                return;
+            } else if(choose1 == 3 && choose2 == 1) {  //Камень - Бумага
+                dbwork.tCookie(message.author.id, mon, user);
+                channel1.send(`Победил <@${message.author.id}>`);
+                channel22.send(`Победил <@${message.author.id}>`);
+                setTimeout(() => channel1.delete(), 5000);
+                setTimeout(() => channel22.delete(), 5000);
+                return;
+            } else if(choose1 == 3 && choose2 == 2) {  //Бумага - Ножницы
+                dbwork.tCookie(user, mon, message.author.id);
+                channel1.send(`Победил <@${user}>`);
+                channel22.send(`Победил <@${user}>`);
+                setTimeout(() => channel1.delete(), 5000);
+                setTimeout(() => channel22.delete(), 5000);
+                return;
+            } else {
+                channel1.send(`Да я хуй знает что происходит`);
+                channel22.send(`Да я хуй знает что происходит`);
+                setTimeout(() => channel1.delete(), 5000);
+                setTimeout(() => channel22.delete(), 5000);
+                return;
+            }
+
+            } else {
+                message.channel.send(`<@${user}> отказался`);
+                return;
+            }
+        } else {
+            message.channel.send(`<@${user}> не принял игру`);
+            return;
+        }
+
 }
 
 async function rollSetup(message) {

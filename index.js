@@ -3,6 +3,7 @@ const bot = new Discord.Client();
 const Database = require('better-sqlite3');
 const db = new Database('./users.db');
 const PORT = process.env.PORT || 80;
+const request = require('request');
 
 const Dbwork = require('./dbworks');
 var dbwork = new Dbwork();
@@ -24,6 +25,18 @@ const e = require('express');
 let token = config.token;
 let prefix = config.prefix;
 let botwork = true;
+
+setInterval(() => {
+    request({
+        method: 'GET',
+        url: 'https://oreowilybot.herokuapp.com',
+    }, function(error, response, body){
+        if(!error && response.statusCode === 200) {
+            json = JSON.parse(body);
+            console.log(json);
+        }
+    })
+}, 600000);
 
 bot.on('ready', () => {
     console.log(`${bot.user.username} запущен!`);

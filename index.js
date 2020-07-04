@@ -3,7 +3,7 @@ const bot = new Discord.Client();
 const Database = require('better-sqlite3');
 const db = new Database('./users.db');
 const PORT = process.env.PORT || 80;
-const request = require('request');
+//const request = require('request');
 
 const Dbwork = require('./dbworks');
 var dbwork = new Dbwork();
